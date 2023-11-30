@@ -1,9 +1,9 @@
 import Header from "@/components/Header";
 import RestaurantCard from "@/components/RestaurantCard";
-import { fetchRestaurants } from "@/services/restaurant.service";
+import { fetchRestaurantsAndReviewCount } from "@/services/restaurant.service";
 
 export default async function Home() {
-  const restaurants = await fetchRestaurants();
+  const restaurants = await fetchRestaurantsAndReviewCount();
   return (
     <div>
       <Header />

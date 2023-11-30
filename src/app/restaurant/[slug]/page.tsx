@@ -25,10 +25,10 @@ const RestaurantPage = async ({ params: { slug } }: Props) => {
           <>
             <RestaurantNavbar slug={slug} />
             <Title title={restaurant.name} />
-            <Rating />
+            <Rating reviews={restaurant.Review} />
             <Description description={restaurant.description} />
             <Images images={restaurant.images} />
-            <Reviews />
+            <Reviews reviews={restaurant.Review} />
           </>
         ) : (
           <NotFoundError message="No Restaurants Found" />

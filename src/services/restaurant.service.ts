@@ -1,18 +1,18 @@
-import { PRICE } from "@prisma/client";
+import { Cuisine, Location, PRICE, Review, User } from "@prisma/client";
 import { prisma } from "./prisma";
+import { notFound } from "next/navigation";
+
+export type ArrayReviews = Array<Pick<Review, "id" | "rating">>;
 
 export interface RestaurantCardType {
   id: number;
   name: string;
   mainImage: string;
   price: PRICE;
-  location: {
-    name: string;
-  };
-  cuisine: {
-    name: string;
-  };
+  location: Pick<Location, "name">;
+  cuisine: Pick<Cuisine, "name">;
   slug: string;
+  Review: ArrayReviews;
 }
 
 export interface RestaurantSearchCard {
@@ -21,18 +21,19 @@ export interface RestaurantSearchCard {
   mainImage: string;
   slug: string;
   price: PRICE;
-  location: {
-    id: number;
-    name: string;
-  };
-  cuisine: {
-    id: number;
-    name: string;
-  };
+  location: Pick<Location, "name" | "id">;
+  cuisine: Pick<Cuisine, "name" | "id">;
+  Review: ArrayReviews;
 }
 
-export async function fetchRestaurants(): Promise<RestaurantCardType[]> {
-  return await prisma.restaurant.findMany({
+export type ReviewCardType = Pick<Review, "id" | "text" | "rating"> & {
+  user: Pick<User, "id" | "firstName" | "lastName">;
+};
+
+export async function fetchRestaurantsAndReviewCount(): Promise<
+  Array<RestaurantCardType>
+> {
+  const restaurants = await prisma.restaurant.findMany({
     select: {
       id: true,
       name: true,
@@ -45,12 +46,19 @@ export async function fetchRestaurants(): Promise<RestaurantCardType[]> {
       },
       price: true,
       slug: true,
+      Review: {
+        select: {
+          id: true,
+          rating: true,
+        },
+      },
     },
   });
+  return restaurants;
 }
 
 export async function fetchRestaurantBySlug(slug: string) {
-  return await prisma.restaurant.findUnique({
+  const restaurant = await prisma.restaurant.findUnique({
     where: { slug },
     select: {
       id: true,
@@ -58,8 +66,18 @@ export async function fetchRestaurantBySlug(slug: string) {
       images: true,
       description: true,
       slug: true,
+      Review: {
+        select: {
+          id: true,
+          text: true,
+          user: { select: { id: true, firstName: true, lastName: true } },
+          rating: true,
+        },
+      },
     },
   });
+  if (!restaurant) return notFound();
+  return restaurant;
 }
 
 export async function fetchRestaurantMenu(slug: string) {
@@ -75,7 +93,7 @@ export async function fetchSearchRestaurants(
   cuisineName: string | undefined,
   price: PRICE | undefined
 ): Promise<RestaurantSearchCard[]> {
-  return await prisma.restaurant.findMany({
+  const restaurants = await prisma.restaurant.findMany({
     where: {
       location: { name: { equals: city, mode: "insensitive" } },
       cuisine: { name: { equals: cuisineName, mode: "insensitive" } },
@@ -89,6 +107,14 @@ export async function fetchSearchRestaurants(
       cuisine: { select: { id: true, name: true } },
       location: { select: { id: true, name: true } },
       slug: true,
+      Review: {
+        select: {
+          id: true,
+          rating: true,
+        },
+      },
     },
   });
+
+  return restaurants;
 }

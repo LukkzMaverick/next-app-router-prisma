@@ -7,7 +7,6 @@ type Props = {
   searchParams: { city?: string; cuisine?: string; price?: string };
 };
 const SearchSideBar = async ({ locations, cuisines, searchParams }: Props) => {
-  console.log(searchParams);
   return (
     <div className="w-1/5">
       <div className="border-b pb-4">
